@@ -29,7 +29,6 @@ Usage: import the module (see Jupyter notebooks for examples), or run from
     --export=<Path to save output data> --scale=<Image scale, in pix/mm>
 
 """
-
 import os
 import numpy as np
 import skimage.draw

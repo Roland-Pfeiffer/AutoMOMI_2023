@@ -21,12 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 from skimage.morphology import skeletonize, label
 from skimage import measure as sk_measure
+from pathlib import Path
+from PIL import Image
+import logging
 from biometry import functions as bf
+import fake_data
 
 csv_header = "Image ID,Eye area[mm2],Eye min diameter[mm],Eye max diameter[mm]," \
              "Eye to front[mm2],Yolk area[mm2],Yolk length[mm],Yolk height[mm],Body area[mm2]," \
@@ -58,14 +62,15 @@ def measure(raw_img, nn_output, scale):
     if 3 in class_ids:
         eye_mask = nn_output['masks'][:, :, class_ids.index(3)].astype(np.uint8)
 
-        # Draw eye outline on output image
-        heart_outline = cv2.dilate(eye_mask, np.ones([5, 5])) - eye_mask
-        raw_img[heart_outline != 0] = (0, 0, 255)
+        # # Draw eye outline on output image
+        # heart_outline = cv2.dilate(eye_mask, np.ones([5, 5])) - eye_mask
+        # raw_img[heart_outline != 0] = (0, 0, 255)
 
         # Find eye min and max diameter
         iml = label(eye_mask > 0)
         # Select the largest eye mask (multiple not supported)
-        region_properties = sk_measure.regionprops(iml, cache=False, coordinates='xy')
+        # region_properties = sk_measure.regionprops(iml, cache=False, coordinates='xy')
+        region_properties = sk_measure.regionprops(iml, cache=False)
         largest_element = None
         max_length = -1
         for region_prop in region_properties:
@@ -162,7 +167,7 @@ def measure(raw_img, nn_output, scale):
         # Find yolk min and max diameter
         iml = label(yolk_mask > 0)
         # Select the largest yolk mask (multiple not supported)
-        region_properties = sk_measure.regionprops(iml, cache=False, coordinates='xy')
+        region_properties = sk_measure.regionprops(iml, cache=False)
         largest_element = None
         max_length = -1
         for region_prop in region_properties:
@@ -194,7 +199,7 @@ def measure(raw_img, nn_output, scale):
         raw_img[body_outline != 0] = (255, 255, 255)
 
         # Find direction of larvae
-        body_sum = np.sum(body_mask.astype(np.float), axis=0)
+        body_sum = np.sum(body_mask.astype(float), axis=0)
         body_diff = np.abs(np.diff(body_sum))
 
         body_start = 0
@@ -267,7 +272,11 @@ def measure(raw_img, nn_output, scale):
         myotome_height = corrected_myotome_height / scale
 
         # Draw Myotome Height on image
-        raw_img = cv2.line(raw_img, (x0_corr, y0_corr), (x1, y1), (255, 255, 0), 2)
+        raw_img = cv2.line(img=raw_img.copy(),  # For some reason, you need to provide a copy to prevent Umat error.
+                           pt1=(x0_corr, y0_corr),
+                           pt2=(x1, y1),
+                           color=(255, 255, 0),
+                           thickness=2)
 
         # Myotome length
         skeleton = skeletonize(body_mask)
@@ -380,3 +389,21 @@ def measure(raw_img, nn_output, scale):
         myotome_height)
 
     return measurements, raw_img
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO, format="[%(levelname)s]\t%(message)s")
+
+    root = Path("/home/findux/Desktop")
+
+    raw_image = np.array(Image.open(Path(root, "raw_image.tif"))).astype("uint8")
+    # Drop alpha channel:
+    raw_image = raw_image[:, :, :3]
+
+    logging.info(f"Raw img: {raw_image.shape}")
+    nn_output = fake_data.load_data(root)
+
+    results = measure(raw_img=raw_image, nn_output=nn_output, scale=0.1)
+
+    plt.imshow(results[1])
+    plt.show()

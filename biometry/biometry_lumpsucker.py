@@ -24,6 +24,7 @@ SOFTWARE.
 
 import numpy as np
 import cv2
+import logging
 from skimage.morphology import skeletonize, label
 from skimage import measure as sk_measure
 from biometry import functions as bf
