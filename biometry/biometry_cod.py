@@ -329,7 +329,7 @@ def measure(raw_img, nn_output, scale):
         logging.debug(f"{skeleton.shape=}")
         plt.imshow(skeleton)
         plt.show()
-        
+
         skeleton[:, min(P_hx, P_hm_x, P_hbx):max(P_hx, P_hm_x, P_hbx)] = 0
 
         myotome_length = np.sqrt((P_hm_x - P_hbx)**2 + (P_hm_y - P_hby)**2) + \
