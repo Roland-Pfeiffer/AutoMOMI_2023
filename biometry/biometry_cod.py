@@ -90,6 +90,7 @@ def measure(raw_img, nn_output, scale):
             eye_c_y, eye_c_x = region_properties.centroid
             eye_c_x = int(round(eye_c_x))
             eye_c_y = int(round(eye_c_y))
+            logging.info(f"Eye center (x, y): {eye_c_x}, {eye_c_y}")
 
             scan_range = 300
 
@@ -101,7 +102,9 @@ def measure(raw_img, nn_output, scale):
                 eye_scan_stop_y = np.sin(degree/360.0 * 2*np.pi) * scan_range + eye_c_y
 
                 temp.fill(0)
-                temp = cv2.line(temp, (eye_c_x, eye_c_y), (int(eye_scan_stop_x), int(eye_scan_stop_y)), 2, 1)
+                temp = cv2.line(img=temp,
+                                pt1=(eye_c_x, eye_c_y), pt2=(int(eye_scan_stop_x), int(eye_scan_stop_y)),
+                                color=2, thickness=1)
 
                 x = eye_c_x
                 y = eye_c_y
@@ -323,6 +326,10 @@ def measure(raw_img, nn_output, scale):
 
         ## draw on skeleton
         skeleton = skeleton.astype(np.uint8)
+        logging.debug(f"{skeleton.shape=}")
+        plt.imshow(skeleton)
+        plt.show()
+        
         skeleton[:, min(P_hx, P_hm_x, P_hbx):max(P_hx, P_hm_x, P_hbx)] = 0
 
         myotome_length = np.sqrt((P_hm_x - P_hbx)**2 + (P_hm_y - P_hby)**2) + \
@@ -392,7 +399,11 @@ def measure(raw_img, nn_output, scale):
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO, format="[%(levelname)s]\t%(message)s")
+    logging.getLogger('matplotlib.font_manager').disabled = True  # Suppress matplotlib findfont debug msgs
+    pil_logger = logging.getLogger('PIL')  # Suppress PIL debug msgs
+    pil_logger.setLevel(logging.INFO)  # Suppress PIL debug msgs
+
+    logging.basicConfig(level=logging.DEBUG, format="[%(levelname)s]\t%(funcName)15s:\t%(message)s")
 
     root = Path("/home/findux/Desktop")
 

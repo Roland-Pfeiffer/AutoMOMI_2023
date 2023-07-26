@@ -17,8 +17,8 @@ def load_data(root: Path):
 
     # Make sure each array is of the same shape
     shapes = [m.shape for m in masks]
+    logging.debug(f"Mask shapes: {shapes}")
     assert len(set(shapes)) == 1
-    logging.debug(f"Mask shape: {shapes[0]}")
 
     mask_stack = None
     for i, (shape, mask) in enumerate(zip(shapes, masks)):
