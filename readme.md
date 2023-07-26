@@ -1,3 +1,9 @@
+This is a slightly adapted and updated version of the original AutoMOMI code in:
+
+Kvæstad, B., Hansen, B. H., & Davies, E. (2022). Automated morphometrics on microscopy images of Atlantic cod larvae using Mask R-CNN and classical machine vision techniques. MethodsX, 9, 101598. https://doi.org/10.1016/j.mex.2021.101598
+
+Original readme below:
+
 # Welcome to AutoMOMI (Automated Morphometrics On Microscope Images) powered by Mask R-CNN!
 
 AutoMOMI is a software for fully automated morphometrics of microscope images
